@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  packages: write
 
 jobs:
   test:
@@ -31,3 +32,13 @@ jobs:
             http://127.0.0.1:8080/health
 
           python3 -c 'import json; assert json.load(open("response.json")) == {"status": "ok"}'
+
+      - name: Publish tested image to GHCR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          image="ghcr.io/skup04/cicd-lab:${GITHUB_SHA}"
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker tag cicd-lab:ci "$image"
+          docker push "$image"
