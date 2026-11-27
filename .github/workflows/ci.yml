@@ -16,3 +16,18 @@ jobs:
 
       - name: Run tests
         run: python3 -m unittest -v test_app
+
+      - name: Build Docker image
+        run: docker build -t cicd-lab:ci .
+
+      - name: Smoke-test container
+        run: |
+          docker run -d --name cicd-lab -p 127.0.0.1:8080:8000 cicd-lab:ci
+          trap 'docker logs cicd-lab; docker rm -f cicd-lab' EXIT
+
+          curl --fail --silent --show-error \
+            --retry 10 --retry-all-errors --retry-delay 1 --max-time 3 \
+            --output response.json \
+            http://127.0.0.1:8080/health
+
+          python3 -c 'import json; assert json.load(open("response.json")) == {"status": "ok"}'
