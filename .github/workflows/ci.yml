@@ -26,7 +26,8 @@ jobs:
           trap 'docker logs cicd-lab; docker rm -f cicd-lab' EXIT
 
           curl --fail --silent --show-error \
-            --retry 10 --retry-connrefused --retry-delay 1 \
-            http://127.0.0.1:8080/health -o response.json
+            --retry 10 --retry-all-errors --retry-delay 1 --max-time 3 \
+            --output response.json \
+            http://127.0.0.1:8080/health
 
           python3 -c 'import json; assert json.load(open("response.json")) == {"status": "ok"}'
