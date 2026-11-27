@@ -1,3 +1,3 @@
 # app.py
 def health():
-    return {"status": "down"}
+    return {"status": "ok"}
